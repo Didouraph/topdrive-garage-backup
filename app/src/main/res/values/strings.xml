@@ -4,11 +4,13 @@
     <string name="title">Sauvegarde Garage.dat</string>
     <string name="subtitle">Copie automatiquement le fichier de sauvegarde de Top Drive vers un dossier Google Drive, en remplaçant toujours l\'ancienne copie.</string>
 
-    <string name="step1_title">1. Autoriser l\'accès à tous les fichiers</string>
-    <string name="step1_desc">Nécessaire pour lire le fichier Garage.dat du jeu Top Drive.</string>
-    <string name="btn_grant_storage">Autoriser l\'accès</string>
-    <string name="status_granted">✅ Accordé</string>
-    <string name="status_not_granted">❌ Non accordé</string>
+    <string name="step1_title">1. Connecter Shizuku</string>
+    <string name="step1_desc">Nécessaire pour lire Garage.dat dans le dossier de Top Drive (Android bloque cet accès pour toute appli tierce depuis la version 11, même avec la permission "tous les fichiers"). Voir le README pour installer/activer Shizuku (gratuit, sans root, sans PC).</string>
+    <string name="btn_grant_storage">Autoriser Shizuku</string>
+    <string name="status_granted">✅ Connecté</string>
+    <string name="status_not_granted">❌ Non connecté</string>
+    <string name="status_shizuku_not_installed">❌ Shizuku non installé</string>
+    <string name="status_shizuku_not_running">❌ Shizuku non démarré</string>
 
     <string name="step2_title">2. Choisir le dossier Google Drive</string>
     <string name="step2_desc">Choisis un dossier dans l\'appli Google Drive où la sauvegarde sera écrite.</string>

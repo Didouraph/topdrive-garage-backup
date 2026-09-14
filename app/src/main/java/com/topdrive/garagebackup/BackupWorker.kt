@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
@@ -15,12 +14,13 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
+import java.io.ByteArrayOutputStream
 
 /**
- * Lit Android/data/com.hutchgames.cccg/files/Garage.dat et le copie
- * (en remplaçant l'ancien) dans le dossier Google Drive choisi par
- * l'utilisateur, via le Storage Access Framework.
+ * Lit Android/data/com.hutchgames.cccg/files/Garage.dat (via Shizuku, seul
+ * moyen sans root de lire le dossier d'une autre application depuis
+ * Android 11) et le copie — en remplaçant l'ancien — dans le dossier Google
+ * Drive choisi par l'utilisateur, via le Storage Access Framework.
  */
 class BackupWorker(appContext: Context, params: WorkerParameters) :
     CoroutineWorker(appContext, params) {
@@ -28,6 +28,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) :
     companion object {
         const val SOURCE_PACKAGE = "com.hutchgames.cccg"
         const val SOURCE_FILE_NAME = "Garage.dat"
+        const val SOURCE_PATH = "/storage/emulated/0/Android/data/$SOURCE_PACKAGE/files/$SOURCE_FILE_NAME"
         const val KEY_FORCE = "force"
         private const val CHANNEL_ID = "garage_backup_status"
         private const val NOTIF_ID = 42
@@ -38,32 +39,23 @@ class BackupWorker(appContext: Context, params: WorkerParameters) :
         val force = inputData.getBoolean(KEY_FORCE, false)
 
         try {
-            // 1. Vérifier l'accès "tous fichiers"
-            if (!StorageAccess.isGranted(applicationContext)) {
-                fail(prefs, "Accès aux fichiers non autorisé. Ouvre l'application pour l'activer.")
+            // 1. Lire Garage.dat via Shizuku (en mémoire : le fichier ne fait
+            //    que quelques Mo au maximum).
+            val buffer = ByteArrayOutputStream()
+            val readError = ShizukuHelper.catFileTo(SOURCE_PATH, buffer)
+            if (readError != null) {
+                fail(prefs, readError)
                 return@withContext Result.failure()
             }
+            val fileBytes = buffer.toByteArray()
 
-            // 2. Localiser le fichier source
-            val sourceFile = File(
-                Environment.getExternalStorageDirectory(),
-                "Android/data/$SOURCE_PACKAGE/files/$SOURCE_FILE_NAME"
-            )
-            if (!sourceFile.exists() || !sourceFile.canRead()) {
-                fail(prefs, "Garage.dat introuvable. Ouvre Top Drive au moins une fois et réessaie.")
-                return@withContext Result.failure()
-            }
-
-            // 3. Éviter de ré-uploader si rien n'a changé
-            if (!force &&
-                sourceFile.lastModified() == prefs.lastSourceMtime &&
-                sourceFile.length() == prefs.lastSourceSize &&
-                prefs.lastBackupSuccess
-            ) {
+            // 2. Éviter de ré-uploader si rien n'a changé (comparaison par taille,
+            //    Shizuku ne donne pas facilement la date de modification).
+            if (!force && fileBytes.size.toLong() == prefs.lastSourceSize && prefs.lastBackupSuccess) {
                 return@withContext Result.success()
             }
 
-            // 4. Dossier Drive choisi
+            // 3. Dossier Drive choisi
             val folderUriString = prefs.driveFolderUri
                 ?: run {
                     fail(prefs, "Aucun dossier Google Drive choisi. Ouvre l'application pour le configurer.")
@@ -76,7 +68,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) :
                 return@withContext Result.failure()
             }
 
-            // 5. Supprimer l'ancienne copie puis en créer une nouvelle (remplacement complet)
+            // 4. Supprimer l'ancienne copie puis en créer une nouvelle (remplacement complet)
             folder.findFile(SOURCE_FILE_NAME)?.delete()
             val newFile = folder.createFile("application/octet-stream", SOURCE_FILE_NAME)
                 ?: run {
@@ -85,20 +77,17 @@ class BackupWorker(appContext: Context, params: WorkerParameters) :
                 }
 
             applicationContext.contentResolver.openOutputStream(newFile.uri, "w")?.use { out ->
-                sourceFile.inputStream().use { input ->
-                    input.copyTo(out)
-                }
+                out.write(fileBytes)
             } ?: run {
                 fail(prefs, "Impossible d'écrire sur Drive.")
                 return@withContext Result.failure()
             }
 
-            // 6. Succès : mémoriser l'état
+            // 5. Succès : mémoriser l'état
             prefs.lastBackupTimeMillis = System.currentTimeMillis()
             prefs.lastBackupSuccess = true
             prefs.lastError = null
-            prefs.lastSourceMtime = sourceFile.lastModified()
-            prefs.lastSourceSize = sourceFile.length()
+            prefs.lastSourceSize = fileBytes.size.toLong()
 
             Result.success()
         } catch (e: Exception) {

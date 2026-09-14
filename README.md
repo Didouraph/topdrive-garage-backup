@@ -54,17 +54,56 @@ code à écrire.
 1. Transfère `TopDriveGarageBackup.apk` sur ton téléphone (par mail, par
    Drive, ou télécharge-le directement depuis le téléphone en ouvrant la
    page Releases dans son navigateur).
-2. Ouvre le fichier APK sur le téléphone. Android va probablement demander
+2. **Si tu avais déjà installé une version précédente de l'appli** :
+   désinstalle-la d'abord (appui long sur l'icône > Désinstaller). Les tout
+   premiers builds étaient signés avec une clé différente à chaque
+   compilation, donc Android refuse d'installer la nouvelle version
+   par-dessus ("app non installée" / rien ne se passe). **Depuis cette
+   version, ce n'est plus le cas** : les prochaines mises à jour
+   s'installeront normalement par-dessus, sans réinstallation complète.
+3. Ouvre le fichier APK sur le téléphone. Android va probablement demander
    d'autoriser "l'installation d'applications inconnues" pour l'app que tu
    utilises (Fichiers, Chrome...) — accepte, c'est normal pour une appli
    installée hors Play Store.
-3. Installe, puis ouvre **Top Drive Backup**.
+4. Installe, puis ouvre **Top Drive Backup**.
+   - Si tu viens de désinstaller une ancienne version, il faudra refaire la
+     configuration (étape 5 ci-dessous) : le dossier Drive choisi et
+     l'autorisation Shizuku sont liés à l'installation.
 
-## Étape 4 — Configurer l'appli (une seule fois)
+## Étape 4 — Installer et activer Shizuku (une seule fois)
 
-1. Appuie sur **"Autoriser l'accès"** (étape 1 dans l'appli) : Android ouvre
-   un réglage — active **"Autoriser la gestion de tous les fichiers"** pour
-   cette appli, puis reviens en arrière.
+Depuis Android 11, aucune application ne peut lire le dossier Android/data
+d'une autre application (ici Top Drive) — c'est une protection du système,
+même avec la permission "tous les fichiers". **Shizuku** est une appli
+gratuite, sans root, qui contourne cette limite en donnant à notre appli les
+mêmes droits qu'un ordinateur connecté en USB (adb) — sauf qu'ici, tout se
+fait uniquement sur le téléphone, sans PC.
+
+1. Installe l'appli **[Shizuku](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api)**
+   depuis le Play Store (gratuite).
+2. Active les options développeur si ce n'est pas déjà fait : **Paramètres
+   > À propos du téléphone**, puis tape 7 fois sur **"Numéro de build"**.
+3. Va dans **Paramètres > Système > Options pour les développeurs**, puis
+   active **"Débogage sans fil"** (Wireless debugging).
+4. Ouvre **"Débogage sans fil"**, puis **"Coupler l'appareil avec un code"**
+   (Pair device with pairing code) — un code à 6 chiffres apparaît.
+5. Ouvre l'appli **Shizuku**, choisis **"Démarrer via débogage sans fil"**
+   (Start via wireless debugging) et suis les instructions à l'écran (elle
+   utilise directement le code affiché à l'étape précédente — pas besoin de
+   PC ni de câble).
+6. Une fois Shizuku indiqué comme **"en cours d'exécution"**, ouvre notre
+   appli **Top Drive Backup**.
+
+   > ⚠️ Après un redémarrage du téléphone, Shizuku s'arrête généralement et
+   > doit être relancé manuellement (rouvre l'appli Shizuku, répète l'étape
+   > "Démarrer via débogage sans fil" si besoin). C'est une limite connue de
+   > cette méthode sans root.
+
+## Étape 5 — Configurer l'appli Top Drive Backup (une seule fois)
+
+1. Appuie sur **"Autoriser Shizuku"** (étape 1 dans l'appli). Si tout est
+   bien activé, une popup Shizuku apparaît : accepte-la. L'état doit passer
+   à "✅ Connecté".
 2. Appuie sur **"Choisir le dossier"** (étape 2) : le sélecteur de fichiers
    Android s'ouvre. Si "Drive" n'apparaît pas directement, ouvre le menu
    ☰ en haut à gauche du sélecteur pour le trouver. Choisis (ou crée) un
@@ -87,8 +126,11 @@ l'ancien fichier.
   danger pour un usage personnel hors Play Store.
 - Android limite les tâches de fond pour économiser la batterie : la
   sauvegarde automatique n'est donc pas à la seconde près. Rouvrir l'appli
-  de temps en temps, et l'exemption de batterie (étape 4.3), aident à la
+  de temps en temps, et l'exemption de batterie (étape 5.3), aident à la
   rendre plus régulière.
+- Si Shizuku n'est plus connecté après un redémarrage du téléphone (état
+  "❌ Non connecté" dans l'appli), rouvre l'appli Shizuku pour la relancer
+  (voir l'avertissement de l'étape 4), puis "Autoriser Shizuku" à nouveau.
 - Si tu modifies plus tard le nom du fichier/dossier du jeu, ou si tu veux
   changer la fréquence (actuellement 6h), dis-le-moi et je mettrai le code
   à jour.

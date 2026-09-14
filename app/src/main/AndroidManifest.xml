@@ -2,21 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Accès complet au stockage (Android 11+) : nécessaire pour lire
-         Android/data/com.hutchgames.cccg/files/Garage.dat qui appartient
-         à une autre application. -->
-    <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
-
-    <!-- Pour les appareils Android 6 à 10 (API 23-29). -->
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
-
     <!-- Notifications d'état (Android 13+). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -30,7 +15,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@style/Theme.GarageBackup"
-        android:requestLegacyExternalStorage="true"
         tools:targetApi="34">
 
         <activity
@@ -42,6 +26,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Nécessaire pour la compatibilité avec Shizuku (transfert du binder
+             privilégié depuis l'appli Shizuku). -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
     </application>
 

@@ -3,9 +3,7 @@ package com.topdrive.garagebackup
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
@@ -15,6 +13,7 @@ import androidx.core.net.toUri
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.topdrive.garagebackup.databinding.ActivityMainBinding
+import rikka.shizuku.Shizuku
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -25,15 +24,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: Prefs
     private var awaitingManualResult = false
 
-    private val manageAllFilesLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            refreshStatus()
-        }
-
-    private val legacyPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            refreshStatus()
-        }
+    private val shizukuPermissionListener =
+        Shizuku.OnRequestPermissionResultListener { _, _ -> runOnUiThread { refreshStatus() } }
 
     private val folderPickerLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -54,7 +46,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         prefs = Prefs(this)
 
-        binding.btnGrantStorage.setOnClickListener { requestStorageAccess() }
+        try {
+            Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
+        } catch (_: Throwable) {
+            // Shizuku pas encore disponible : sans conséquence, on réessaiera via refreshStatus().
+        }
+
+        binding.btnGrantStorage.setOnClickListener { requestShizuku() }
         binding.btnChooseFolder.setOnClickListener { openFolderPicker() }
         binding.btnBackupNow.setOnClickListener { runBackupNow() }
         binding.btnBattery.setOnClickListener { requestIgnoreBatteryOptimizations() }
@@ -81,24 +79,57 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    override fun onDestroy() {
+        try {
+            Shizuku.removeRequestPermissionResultListener(shizukuPermissionListener)
+        } catch (_: Throwable) {
+        }
+        super.onDestroy()
+    }
+
     override fun onResume() {
         super.onResume()
         refreshStatus()
     }
 
-    private fun requestStorageAccess() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                data = "package:$packageName".toUri()
+    private fun requestShizuku() {
+        when {
+            !ShizukuHelper.isShizukuAppInstalled(this) -> {
+                Toast.makeText(
+                    this,
+                    "Installe l'appli Shizuku (voir le README), puis reviens ici.",
+                    Toast.LENGTH_LONG
+                ).show()
+                try {
+                    startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            "market://details?id=${ShizukuHelper.SHIZUKU_PACKAGE_NAME}".toUri()
+                        )
+                    )
+                } catch (_: Exception) {
+                    startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            "https://play.google.com/store/apps/details?id=${ShizukuHelper.SHIZUKU_PACKAGE_NAME}".toUri()
+                        )
+                    )
+                }
             }
-            manageAllFilesLauncher.launch(intent)
-        } else {
-            legacyPermissionLauncher.launch(
-                arrayOf(
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
-            )
+
+            !ShizukuHelper.isBinderAlive() -> {
+                Toast.makeText(
+                    this,
+                    "Ouvre l'appli Shizuku et démarre-la (débogage sans fil), voir le README, puis reviens ici.",
+                    Toast.LENGTH_LONG
+                ).show()
+                val launchIntent = packageManager.getLaunchIntentForPackage(ShizukuHelper.SHIZUKU_PACKAGE_NAME)
+                if (launchIntent != null) startActivity(launchIntent)
+            }
+
+            !ShizukuHelper.hasPermission() -> ShizukuHelper.requestPermission()
+
+            else -> Toast.makeText(this, "Shizuku est déjà connecté", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -127,9 +158,12 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun refreshStatus() {
-        val storageOk = StorageAccess.isGranted(this)
-        binding.storageStatus.text =
-            if (storageOk) getString(R.string.status_granted) else getString(R.string.status_not_granted)
+        binding.storageStatus.text = when {
+            !ShizukuHelper.isShizukuAppInstalled(this) -> getString(R.string.status_shizuku_not_installed)
+            !ShizukuHelper.isBinderAlive() -> getString(R.string.status_shizuku_not_running)
+            !ShizukuHelper.hasPermission() -> getString(R.string.status_not_granted)
+            else -> getString(R.string.status_granted)
+        }
 
         val folderUri: Uri? = prefs.driveFolderUri?.let { Uri.parse(it) }
         binding.folderStatus.text = if (folderUri != null) {
@@ -145,13 +179,7 @@ class MainActivity : AppCompatActivity() {
             if (checked) BackupScheduler.enable(this) else BackupScheduler.disable(this)
         }
 
-        val sourceFile = java.io.File(
-            Environment.getExternalStorageDirectory(),
-            "Android/data/${BackupWorker.SOURCE_PACKAGE}/files/${BackupWorker.SOURCE_FILE_NAME}"
-        )
-        val sourceStatus = if (sourceFile.exists()) "Garage.dat trouvé" else "Garage.dat introuvable (lance Top Drive au moins une fois)"
-
-        binding.statusText.text = "$sourceStatus\n" + if (prefs.lastBackupSuccess) {
+        binding.statusText.text = if (prefs.lastBackupSuccess) {
             "Dernier état : OK"
         } else if (prefs.lastError != null) {
             "Dernier état : erreur — ${prefs.lastError}"
