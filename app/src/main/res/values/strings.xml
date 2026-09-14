@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Top Drive Backup</string>
+
+    <string name="title">Sauvegarde Garage.dat</string>
+    <string name="subtitle">Copie automatiquement le fichier de sauvegarde de Top Drive vers un dossier Google Drive, en remplaçant toujours l\'ancienne copie.</string>
+
+    <string name="step1_title">1. Autoriser l\'accès à tous les fichiers</string>
+    <string name="step1_desc">Nécessaire pour lire le fichier Garage.dat du jeu Top Drive.</string>
+    <string name="btn_grant_storage">Autoriser l\'accès</string>
+    <string name="status_granted">✅ Accordé</string>
+    <string name="status_not_granted">❌ Non accordé</string>
+
+    <string name="step2_title">2. Choisir le dossier Google Drive</string>
+    <string name="step2_desc">Choisis un dossier dans l\'appli Google Drive où la sauvegarde sera écrite.</string>
+    <string name="btn_choose_folder">Choisir le dossier</string>
+    <string name="status_no_folder">❌ Aucun dossier choisi</string>
+
+    <string name="step3_title">3. Sauvegarde automatique</string>
+    <string name="step3_desc">Vérifie le fichier toutes les 6 heures environ et le renvoie sur Drive s\'il a changé.</string>
+
+    <string name="btn_backup_now">Sauvegarder maintenant</string>
+    <string name="btn_battery">Ignorer l\'optimisation de batterie (recommandé)</string>
+
+    <string name="status_label">État : %1$s</string>
+    <string name="last_backup_label">Dernière sauvegarde : %1$s</string>
+    <string name="last_backup_never">jamais</string>
+</resources>

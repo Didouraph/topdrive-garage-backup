@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple cloud + arrow (upload/backup) glyph -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,66 C26,66 20,60 20,52 C20,44.5 25.8,38.4 33.2,38 C36,29 44.3,23 54,23 C65.6,23 75.3,31.6 76.8,42.8 C83.7,44 89,50 89,57 C89,64.7 82.8,71 75,71 L34,71 Z" />
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M54,44 L54,74 M54,44 L44,54 M54,44 L64,54"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
