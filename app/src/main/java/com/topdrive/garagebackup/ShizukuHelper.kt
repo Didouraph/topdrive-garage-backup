@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import rikka.shizuku.Shizuku
 import java.io.OutputStream
+import java.lang.reflect.Method
 
 /**
  * Depuis Android 11, aucune application tierce ne peut lire le dossier
@@ -53,6 +54,24 @@ object ShizukuHelper {
         false
     }
 
+    // Shizuku.newProcess(String[], String[], String) existe bien dans la
+    // librairie mais n'est pas déclaré "public" côté Kotlin : c'est la
+    // méthode que l'appli officielle de démonstration de Shizuku utilise
+    // elle-même via réflexion pour lancer un process avec les droits shell.
+    private val newProcessMethod: Method by lazy {
+        Shizuku::class.java.getDeclaredMethod(
+            "newProcess",
+            Array<String>::class.java,
+            Array<String>::class.java,
+            String::class.java
+        ).apply { isAccessible = true }
+    }
+
+    private fun shizukuNewProcess(cmd: Array<String>): Process {
+        @Suppress("UNCHECKED_CAST")
+        return newProcessMethod.invoke(null, cmd, null, null) as Process
+    }
+
     /**
      * Exécute `cat <path>` via Shizuku et copie la sortie vers [out].
      * Retourne `null` en cas de succès, sinon un message d'erreur lisible.
@@ -62,7 +81,7 @@ object ShizukuHelper {
         if (!hasPermission()) return "Permission Shizuku non accordée."
 
         return try {
-            val process = Shizuku.newProcess(arrayOf("cat", path), null, null)
+            val process = shizukuNewProcess(arrayOf("cat", path))
             val copied = process.inputStream.use { it.copyTo(out) }
             val stderrText = process.errorStream.bufferedReader().use { it.readText() }
             val exitCode = process.waitFor()
