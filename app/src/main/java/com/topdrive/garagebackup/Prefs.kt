@@ -9,6 +9,7 @@ import android.content.Context
  *  - la date/état de la dernière sauvegarde
  *  - taille/date de modification du dernier fichier sauvegardé (pour éviter
  *    de ré-uploader si Garage.dat n'a pas changé)
+ *  - les jeux à sauvegarder et l'empreinte du dossier Saves de CTM
  */
 class Prefs(context: Context) {
 
@@ -42,6 +43,26 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_SRC_SIZE, -1L)
         set(value) = sp.edit().putLong(KEY_SRC_SIZE, value).apply()
 
+    /** Jeux à sauvegarder (cochés par défaut). */
+    var topDriveEnabled: Boolean
+        get() = sp.getBoolean(KEY_TD_ENABLED, true)
+        set(value) = sp.edit().putBoolean(KEY_TD_ENABLED, value).apply()
+
+    var ctmEnabled: Boolean
+        get() = sp.getBoolean(KEY_CTM_ENABLED, true)
+        set(value) = sp.edit().putBoolean(KEY_CTM_ENABLED, value).apply()
+
+    /** Empreinte du dossier Saves de City Transport Manager au dernier envoi réussi. */
+    var ctmLastSignature: String?
+        get() = sp.getString(KEY_CTM_SIG, null)
+        set(value) = sp.edit().putString(KEY_CTM_SIG, value).apply()
+
+    /** Force le prochain envoi de tous les jeux (ex : après changement de dossier Drive). */
+    fun resetChangeDetection() {
+        lastSourceSize = -1L
+        ctmLastSignature = null
+    }
+
     companion object {
         private const val KEY_FOLDER_URI = "drive_folder_uri"
         private const val KEY_AUTO_ENABLED = "auto_backup_enabled"
@@ -50,5 +71,8 @@ class Prefs(context: Context) {
         private const val KEY_LAST_ERROR = "last_error"
         private const val KEY_SRC_MTIME = "last_source_mtime"
         private const val KEY_SRC_SIZE = "last_source_size"
+        private const val KEY_TD_ENABLED = "topdrive_enabled"
+        private const val KEY_CTM_ENABLED = "ctm_enabled"
+        private const val KEY_CTM_SIG = "ctm_last_signature"
     }
 }

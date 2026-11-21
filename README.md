@@ -1,9 +1,22 @@
-# Top Drive Garage Backup
+# Top Drive Garage Backup (+ City Transport Manager)
 
-Petite appli Android qui copie automatiquement le fichier de sauvegarde du jeu
-**Top Drive** (`Android/data/com.hutchgames.cccg/files/Garage.dat`) vers un
+Petite appli Android qui copie automatiquement les sauvegardes de jeux vers un
 dossier **Google Drive** de ton choix, en remplaçant à chaque fois l'ancienne
-copie (tu n'as donc jamais plusieurs fichiers).
+copie (tu n'as donc jamais plusieurs exemplaires) :
+
+| Jeu | Sur le téléphone | Sur Drive |
+|---|---|---|
+| **Top Drive** | `Android/data/com.hutchgames.cccg/files/Garage.dat` | `Garage.dat` |
+| **City Transport Manager** | `Android/data/com.pedepe.ctm/files/Saves/` (tout le dossier) | `CTM_Saves.zip` |
+
+Chaque jeu peut être coché/décoché dans l'appli (carte « 3. Jeux à
+sauvegarder »). Si l'un des deux n'est pas installé, décoche-le, sinon la
+sauvegarde signalera une erreur pour ce jeu (l'autre est quand même sauvegardé).
+
+**Restaurer City Transport Manager** : télécharge `CTM_Saves.zip` depuis Drive,
+décompresse-le, et remets son contenu dans
+`Android/data/com.pedepe.ctm/files/Saves/` (avec un gestionnaire de fichiers
+qui a accès à Android/data — par exemple via Shizuku — ou depuis un PC en USB).
 
 Je n'ai pas pu compiler l'APK moi-même (mon environnement cloud n'a pas accès
 aux serveurs de Google nécessaires à tout build Android). À la place, ce
@@ -108,16 +121,19 @@ fait uniquement sur le téléphone, sans PC.
    Android s'ouvre. Si "Drive" n'apparaît pas directement, ouvre le menu
    ☰ en haut à gauche du sélecteur pour le trouver. Choisis (ou crée) un
    dossier dans ton Drive, puis valide en bas à droite.
-3. Vérifie que **"Sauvegarde automatique"** est activé (interrupteur en
-   haut à droite de l'étape 3). Pour plus de fiabilité, appuie aussi sur
+3. Dans **"Jeux à sauvegarder"** (étape 3), laisse cochés les jeux que tu
+   as installés.
+4. Vérifie que **"Sauvegarde automatique"** est activé (interrupteur en
+   haut à droite de l'étape 4). Pour plus de fiabilité, appuie aussi sur
    **"Ignorer l'optimisation de batterie"** — certains téléphones (Samsung,
    Xiaomi...) arrêtent sinon les tâches de fond trop agressivement.
-4. Appuie sur **"Sauvegarder maintenant"** pour tester tout de suite. Le
+5. Appuie sur **"Sauvegarder maintenant"** pour tester tout de suite. Le
    texte doit afficher "Sauvegarde réussie" — va vérifier sur ton Google
-   Drive que `Garage.dat` est bien apparu dans le dossier choisi.
+   Drive que `Garage.dat` et/ou `CTM_Saves.zip` sont bien apparus dans le
+   dossier choisi.
 
-Ensuite, l'appli vérifie le fichier toutes les 6 heures environ et le
-renvoie sur Drive **uniquement s'il a changé**, en remplaçant systématiquement
+Ensuite, l'appli vérifie les sauvegardes toutes les 6 heures environ et les
+renvoie sur Drive **uniquement si elles ont changé**, en remplaçant systématiquement
 l'ancien fichier.
 
 ## Remarques
@@ -126,7 +142,7 @@ l'ancien fichier.
   danger pour un usage personnel hors Play Store.
 - Android limite les tâches de fond pour économiser la batterie : la
   sauvegarde automatique n'est donc pas à la seconde près. Rouvrir l'appli
-  de temps en temps, et l'exemption de batterie (étape 5.3), aident à la
+  de temps en temps, et l'exemption de batterie (étape 5.4), aident à la
   rendre plus régulière.
 - Si Shizuku n'est plus connecté après un redémarrage du téléphone (état
   "❌ Non connecté" dans l'appli), rouvre l'appli Shizuku pour la relancer

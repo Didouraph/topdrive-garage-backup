@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
                 prefs.driveFolderUri = uri.toString()
+                prefs.resetChangeDetection()
                 refreshStatus()
                 Toast.makeText(this, "Dossier Drive enregistré", Toast.LENGTH_SHORT).show()
             }
@@ -61,6 +62,11 @@ class MainActivity : AppCompatActivity() {
             prefs.autoBackupEnabled = checked
             if (checked) BackupScheduler.enable(this) else BackupScheduler.disable(this)
         }
+
+        binding.checkTopDrive.isChecked = prefs.topDriveEnabled
+        binding.checkTopDrive.setOnCheckedChangeListener { _, checked -> prefs.topDriveEnabled = checked }
+        binding.checkCtm.isChecked = prefs.ctmEnabled
+        binding.checkCtm.setOnCheckedChangeListener { _, checked -> prefs.ctmEnabled = checked }
 
         // Un seul observateur pour toute la durée de vie de l'activité : évite les
         // notifications en double si l'utilisateur appuie plusieurs fois sur "Sauvegarder".
